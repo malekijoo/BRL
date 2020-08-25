@@ -30,49 +30,25 @@ def detect_action(a):
 
 def extract(df, idx):
 
-  datetime = df.iloc[idx][18]
+  datetime = pd.to_datetime(df.iloc[idx][18])
   name = df.iloc[idx][0]
   target = df[df['name'] == name]
-  print(target)
-  # print(target.groupby(by=['datetime']).groups)
-  target = target.groupby(by=target['datetime'].values.astype('<M8[D]')).groups
-  # print(target.groupby(by=target['datetime'].dt.date).count())
+  future_price = []
+  for target_date, obs in target.groupby(by=target['datetime'].values.astype('<M8[D]')):
+    deltatime = pd.Timedelta(pd.to_datetime(obs.iloc[0]['datetime']).date() - datetime.date()).days
+    if 0 < deltatime:
+      if 20 > deltatime:
+        future_price.append([deltatime, obs['price'].mean()])
+
+  return future_price # [delta day, mean() all the day price ]
 
 
-  # print(target)
-  lis_rw_base_on_day = []
-
-  # for i in range(len(target)):
-  #   deltatime = pd.Timedelta(target.iloc[i]['datetime'] - datetime)
-    # print(deltatime.value)
-    # if deltatime.min > 0:
-    #   print(i, deltatime, i)
-    # lis_rw_base_on_day[deltatime][j].append([target.iloc[i]])
-    # j += 1
-    # print(lis_rw_base_on_day)
-
-  # print(lis_rw_base_on_day)
-  # print(type(target.iloc[1]['datetime']))
+    # for i in range(len(state)):
+    #
+    #     # deltatime = pd.Timedelta(state[18] - datetime)
+    #     # print(deltatime)
 
 
-  # print(pd.to_datetime(target.iloc[1]['datetime']).year)
-  # target['pd_datetime'] = pd.to_datetime(target['datetime'])
-  # print(type(pd.to_datetime(target.iloc[1]['datetime'])))
-  # print(type(target.iloc[1]['pd_datetime']))
 
-
-  # b = t + pd.Series(a)
-  # print(b)
-  # # for i in range(len(t)):
-  # print(t.idxmax(axis=0))
-
-
-    # b, ind = a.index(max(t[i, :] + a)), i
-
-  # print(b, ind)
-
-# action = ('Buy', 'Sell', 'Pass')
-# t = one_hot(action)
-# print(t)
-# a, action = detect_action([0.583, 0.233, 0.184])
-# print(a, action)
+# for i in range(len(target)):
+#   deltatime = pd.Timedelta(target.iloc[i]['datetime'] - datetime)
