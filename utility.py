@@ -44,6 +44,5 @@ def extract(df, idx):
 
 
 
-
 # for i in range(len(target)):
 #   deltatime = pd.Timedelta(target.iloc[i]['datetime'] - datetime)

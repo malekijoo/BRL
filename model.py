@@ -78,7 +78,7 @@ class Reinforce:
   def __init__(self):
 
     a = Observe()
-    a(11, st=False)
+    a(1706, st=False)
 
 
 
