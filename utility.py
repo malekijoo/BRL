@@ -35,7 +35,7 @@ def extract(df, idx):
   target = df[df['name'] == name]
   print(target)
   # print(target.groupby(by=['datetime']).groups)
-  print(target.groupby(by=target['datetime'].values.astype('<M8[D]')).groups)
+  target = target.groupby(by=target['datetime'].values.astype('<M8[D]')).groups
   # print(target.groupby(by=target['datetime'].dt.date).count())
 
 
