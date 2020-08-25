@@ -40,13 +40,8 @@ def extract(df, idx):
       if 20 > deltatime:
         future_price.append([deltatime, obs['price'].mean()])
 
-  return future_price # [delta day, mean() all the day price ]
+  return future_price  # [delta day, mean() all the day price ]
 
-
-    # for i in range(len(state)):
-    #
-    #     # deltatime = pd.Timedelta(state[18] - datetime)
-    #     # print(deltatime)
 
 
 
