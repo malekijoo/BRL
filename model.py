@@ -34,14 +34,14 @@ class Observe:
       return self.obs_i(idx, st)
 
 
-  def obs_i(self, idx, st=False):
+  def obs_i(self, idx, observ_label=False):
 
     a = self.data.norm_df.iloc[idx].to_numpy()
     b = self.data.df.iloc[idx].to_numpy()
 
     assert a[18] == b[18], 'The data in df and norm_df are not the same'
     state_check = b[17]
-    if st:
+    if observ_label:
       if 'مجاز' in state_check:
         indx = [17, 18]
         state_des = a[indx]
@@ -67,8 +67,8 @@ class Reinforce:
 
   def __init__(self):
 
-    self.env_state = Observe()
-    self.state_shape = self.env_state.data.df.shape[1]
+    self.st = Observe()
+    self.state_shape = self.st.data.df.shape[1]
     print(self.state_shape)
 
     # a(1706, st=False)
@@ -137,7 +137,7 @@ class Reinforce:
   def get_action(self, state):
     '''samples the next action based on the policy probabilty distribution
       of the actions'''
-
+    print('state.shape  == ', state.shape)
     # transform state
     state = state.reshape([1, state.shape[0]])
     # get action probably
@@ -190,18 +190,18 @@ class Reinforce:
     self.states, self.probs, self.gradients, self.rewards = [], [], [], []
 
     return history
-'''  اول اینکه policy همون مدل شبکه عصبی مون هست. کلیت کار اینطوری که یه اکشن توسط trader انجام میشه 
-با توجه به شکبه ران شده حال حاضر. total retrun حساب میشه بعد policy یا همون شبکه عصبی مون اپدیت میشه.'''
+  '''  اول اینکه policy همون مدل شبکه عصبی مون هست. کلیت کار اینطوری که یه اکشن توسط trader انجام میشه 
+    با توجه به شکبه ران شده حال حاضر. total retrun حساب میشه بعد policy یا همون شبکه عصبی مون اپدیت میشه.'''
 
 
-def train(self, episodes, rollout_n=1, render_n=50):
-    '''train the model
-        episodes - number of training iterations
-        rollout_n- number of episodes between policy update
-        render_n - number of episodes between env rendering '''
+  def train(self, episodes, rollout_n=1, render_n=50):
+    """train the model
+       episodes - number of training iterations
+       rollout_n- number of episodes between policy update
+       render_n - number of episodes between env rendering """
 
-    Reinforce()
-    # env = self.env
+
+
     total_rewards = np.zeros(episodes)
 
     for episode in range(episodes):
@@ -209,10 +209,11 @@ def train(self, episodes, rollout_n=1, render_n=50):
         # state = env.reset()
         done = False
         episode_reward = 0  # record episode reward
-
         while not done:
+            state, state_des = self.st(1, st=False)
             # play an action and record the game state & reward per episode
             action, prob = self.get_action(state)
+            print(action, prob)
     #         next_state, reward, done, _ = env.step(action)
     #         self.remember(state, action, prob, reward)
     #         state = next_state
@@ -231,4 +232,5 @@ def train(self, episodes, rollout_n=1, render_n=50):
 
 
 
-
+result = Reinforce()
+result.train(3)
