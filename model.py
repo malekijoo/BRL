@@ -26,9 +26,6 @@ class Observe:
     self.data = dataset()
     # print(self.data.norm_df)
     # print(self.data.df)
-
-
-
     # self.reward = 1
     # self.done = self.condition_()
 
@@ -55,19 +52,12 @@ class Observe:
     else:
       return ut.extract(self.data.df, idx)
 
-
-
-  #
-  # def condition_(self):
-  #
-  #   if self.reward <= 0:
-  #     return True
-  #   else:
-  #     return False
-
-  # elif self.cash > 0:
-
-
+  @classmethod
+  def condition_(cls, idx):
+    if 'مجاز' in cls.data.df.iloc[idx]['condition']:
+      return True
+    else:
+      return False
 
 
 ''' This is the agent'''
@@ -77,8 +67,11 @@ class Reinforce:
 
   def __init__(self):
 
-    a = Observe()
-    a(1706, st=False)
+    self.env_state = Observe()
+    self.state_shape = self.env_state.data.df.shape[1]
+    print(self.state_shape)
+
+    # a(1706, st=False)
 
 
 
@@ -86,10 +79,7 @@ class Reinforce:
 
 
     self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
-
-    # self.observations = obs(None)
-    # print(self.observations.done)
-
+    print('action && action name ', self.action, self.action_name)
 
     self.gamma = 0.99  # decay rate of past observations
     self.alpha = 1e-4  # learning rate in the policy gradient
@@ -108,7 +98,7 @@ class Reinforce:
     self.total_rewards = []
 
   def hot_encode_action(self, action):
-    '''encoding the actions into a binary list'''
+    """ encoding the actions into a binary list """
 
     action_encoded = np.zeros(self.action_shape, np.float32)
     action_encoded[action] = 1
@@ -210,6 +200,7 @@ def train(self, episodes, rollout_n=1, render_n=50):
         rollout_n- number of episodes between policy update
         render_n - number of episodes between env rendering '''
 
+    Reinforce()
     # env = self.env
     total_rewards = np.zeros(episodes)
 
@@ -222,22 +213,22 @@ def train(self, episodes, rollout_n=1, render_n=50):
         while not done:
             # play an action and record the game state & reward per episode
             action, prob = self.get_action(state)
-            next_state, reward, done, _ = env.step(action)
-            self.remember(state, action, prob, reward)
-            state = next_state
-            episode_reward += reward
+    #         next_state, reward, done, _ = env.step(action)
+    #         self.remember(state, action, prob, reward)
+    #         state = next_state
+    #         episode_reward += reward
+    #
+    #         # if episode%render_n==0: ## render env to visualize.
+    #         # env.render()
+    #         if done:
+    #             # update policy
+    #             if episode % rollout_n == 0:
+    #                 history = self.update_policy()
+    #
+    #     total_rewards[episode] = episode_reward
+    #
+    # self.total_rewards = total_rewards
 
-            # if episode%render_n==0: ## render env to visualize.
-            # env.render()
-            if done:
-                # update policy
-                if episode % rollout_n == 0:
-                    history = self.update_policy()
-
-        total_rewards[episode] = episode_reward
-
-    self.total_rewards = total_rewards
 
 
-Reinforce()
 
