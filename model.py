@@ -66,7 +66,6 @@ class Observe:
 
 ''' This is the agent'''
 
-
 class Reinforce:
 
   def __init__(self):
@@ -136,22 +135,33 @@ class Reinforce:
     '''samples the next action based on the policy probabilty distribution
       of the actions'''
     state = np.asarray(state_).astype(np.float32)
-
-    print('state.shape  == ', state.shape)
     # transform state
     state = state.reshape([1, state.shape[0]])
-    # print('state in get_action = ', state, type(state), type(state[0][0]))
     # get action probably
     action_probability_distribution = self.model.predict(state).flatten()
-    # print('action_probability_distribution ', action_probability_distribution)
     # norm action probability distribution
     action_probability_distribution /= np.sum(action_probability_distribution)
-
     # sample action
-    action = np.random.choice(self.action_shape, 1,
-                              p=action_probability_distribution)[0]
+    action = np.random.choice(self.action_shape, 1, p=action_probability_distribution)[0]
 
     return action, action_probability_distribution
+
+  def reward_function(self, action, state_des):
+    """
+    In this function we have to calculate the Reward and 'done'
+    output
+    'Reward': is a list of rewards that will be calculated in this function
+    'done': the process should be stopped or not.
+
+    input
+    'state_description': [Name, condition, Datetime]
+
+    """
+    "TO DO: we need to design budget, because the policy need to be rendered base on the buy and sell "
+
+
+
+
 
   def get_discounted_rewards(self, rewards):
     '''Use gamma to calculate the total reward discounting for rewards
@@ -215,7 +225,9 @@ class Reinforce:
 
           # play an action and record the game state & reward per episode
           action, prob = self.get_action(state)
-          print(action, prob)
+          # print(action, prob)
+          budget, share, reward, done = self.reward_function(action, state_des)
+
           # action_name = ut.detect_action(action)
           # print('action name', action, action_name)
 
