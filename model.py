@@ -47,7 +47,7 @@ class Observe:
     state_check = b[17]
     if observe_label:
       if 'مجاز' in state_check:
-        indx = [0, 17, 18] # [name, condition, datetime]
+        indx = [0, 17, 18]  #[name, condition, datetime]
         state_des = a[indx]
         indx = [0, 5, 17, 18]
         state = np.delete(a, indx)
