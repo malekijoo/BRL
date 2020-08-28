@@ -28,6 +28,7 @@ class Observe:
   def __call__(self, idx, observe_label=True):
     return self.obs_i(idx, observe_label)
 
+
   def __iter__(self):
     return self
 
