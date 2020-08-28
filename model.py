@@ -29,18 +29,6 @@ class Observe:
     return self.obs_i(idx, observe_label)
 
 
-  def __iter__(self):
-    return self
-
-  def __next__(self, observe_label=True):
-    try:
-      ne = self.obs_i(self._index, observe_label)
-      self._index += 1
-      return ne
-    except IndexError:
-      raise StopIteration
-
-
   def obs_i(self, idx, observe_label):
     a = self.data.norm_df.iloc[idx].to_numpy()
     b = self.data.df.iloc[idx].to_numpy()
