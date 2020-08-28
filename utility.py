@@ -43,5 +43,3 @@ def extract(df, idx):
   return future_price  # [delta day, mean() all the day price ]
 
 
-# for i in range(len(target)):
-#   deltatime = pd.Timedelta(target.iloc[i]['datetime'] - datetime)
