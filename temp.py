@@ -34,11 +34,13 @@ class REINFORCE:
     def __init__(self, env, path=None):
         self.env = env  # import env
         self.state_shape = env.observation_space.shape  # the state space
+        print('state_shape ', self.state_shape)
         print(env.observation_space.low)
         print(env.observation_space.high)
+
         print(self.state_shape)
         self.action_shape = env.action_space.n  # the action space
-        print(self.action_shape)
+        print('action shape  = ', self.action_shape)
         self.gamma = 0.99  # decay rate of past observations
         self.alpha = 1e-4  # learning rate in the policy gradient
         self.learning_rate = 0.01  # learning rate in deep learning
@@ -60,7 +62,7 @@ class REINFORCE:
     def _create_model(self):
         ''' builds the model using keras'''
         model = Sequential()
-
+        print('state shape in _create model  ', self.state_shape)
         # input shape is of observations
         model.add(Dense(24, input_shape=self.state_shape, activation="relu"))
         # model.add(Dropout(0.5))
@@ -124,7 +126,9 @@ class REINFORCE:
         '''encoding the actions into a binary list'''
 
         action_encoded = np.zeros(self.action_shape, np.float32)
+        print('action encoded', action_encoded)
         action_encoded[action] = 1
+        print('action encoded && action ', action_encoded, action)
 
         return action_encoded
 
@@ -133,7 +137,6 @@ class REINFORCE:
         '''stores observations'''
         encoded_action = self.hot_encode_action(action)
         print('encode action     ', encoded_action, action_prob)
-
         self.gradients.append(encoded_action - action_prob)
         print('gradient', self.gradients)
         self.states.append(state)
@@ -151,8 +154,10 @@ class REINFORCE:
         # transform state
 
         state = state.reshape([1, state.shape[0]])
-        print('state     ', state)
+        print('state     ', state, type(state), type(state[0][0]))
         # get action probably
+        print('type and shape  model.predict ', type(self.model.predict(state)), self.model.predict(state).shape)
+
         action_probability_distribution = self.model.predict(state).flatten()
         print('action_probability_distribution 1', action_probability_distribution)
         # norm action probability distribution
@@ -160,6 +165,8 @@ class REINFORCE:
         print('action_probability_distribution 2', action_probability_distribution)
 
         # sample action
+        hha = np.random.choice(self.action_shape, 1, p=action_probability_distribution)
+        print('  hha   == = ', hha)
         action = np.random.choice(self.action_shape, 1, p=action_probability_distribution)[0]
         print('get action ', action, action_probability_distribution)
         return action, action_probability_distribution
@@ -225,6 +232,7 @@ class REINFORCE:
             print('next episode ..... @@@ ***********')
             while not done:
                 # play an action and record the game state & reward per episode
+                print('state shape in train    *** ##@!!@ =', state.shape)
                 action, prob = self.get_action(state)
                 next_state, reward, done, _ = env.step(action)
                 self.remember(state, action, prob, reward)

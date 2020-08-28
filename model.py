@@ -22,26 +22,30 @@ class Observe:
 
   '''This class is going to prepare the Observation Object'''
   def __init__(self, rew=False):
-
     self.data = dataset()
-    # print(self.data.norm_df)
-    # print(self.data.df)
-    # self.reward = 1
-    # self.done = self.condition_()
+    self._index = 0
+
+  def __call__(self, idx, observe_label=True):
+    return self.obs_i(idx, observe_label)
+
+  def __iter__(self):
+    return self
+
+  def __next__(self, observe_label=True):
+    try:
+      ne = self.obs_i(self._index, observe_label)
+      self._index += 1
+      return ne
+    except IndexError:
+      raise StopIteration
 
 
-  def __call__(self, idx, observ_label=True):
-      return self.obs_i(idx, observ_label)
-
-
-  def obs_i(self, idx, observ_label):
-
+  def obs_i(self, idx, observe_label):
     a = self.data.norm_df.iloc[idx].to_numpy()
     b = self.data.df.iloc[idx].to_numpy()
-
     assert a[18] == b[18], 'The data in df and norm_df are not the same'
     state_check = b[17]
-    if observ_label:
+    if observe_label:
       if 'مجاز' in state_check:
         indx = [0, 17, 18] # [name, condition, datetime]
         state_des = a[indx]
@@ -69,14 +73,8 @@ class Reinforce:
 
     self.st = Observe()
     self.state_shape = self.st(0)[0].shape
-    print(self.state_shape)
-
-    # a(1706, st=False)
-
-
-
-
-
+    # print(self.state_shape)
+    # st(1706, st=False)
 
     self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
     self.action_shape = self.action.shape[0]
@@ -206,20 +204,22 @@ class Reinforce:
        render_n - number of episodes between env rendering """
 
     total_rewards = np.zeros(episodes)
-    i=0
+
     for episode in range(episodes):
-        # each episode is a new game env
-        # state = env.reset()
+
         done = False
         episode_reward = 0  # record episode reward
         while not done:
 
-          state, state_des = self.st(i)
+          state, state_des = next(self.st) # itrator
+
           # play an action and record the game state & reward per episode
           action, prob = self.get_action(state)
           print(action, prob)
+          # action_name = ut.detect_action(action)
+          # print('action name', action, action_name)
 
-          i += 1
+
           done = True
 
             # print(action, prob)
@@ -242,4 +242,4 @@ class Reinforce:
 
 
 result = Reinforce()
-result.train(5)
+result.train(3)
