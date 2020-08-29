@@ -38,7 +38,9 @@ def extract(df, idx):
     deltatime = pd.Timedelta(pd.to_datetime(obs.iloc[0]['datetime']).date() - datetime.date()).days
     if 0 < deltatime:
       if 20 > deltatime:
-        future_price.append([deltatime, obs['price'].mean()])
+        # print(deltatime)
+        # print(obs['price'].to_string(index=False))
+        future_price.append([deltatime, obs['price'].mean(), obs['ydp'].mean(), obs['change_per'].mean()*100])
 
   return future_price  # [delta day, mean() all the day price ]
 

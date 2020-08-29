@@ -25,34 +25,38 @@ class Observe:
     self.data = dataset()
     self._index = 0
 
-  def __call__(self, idx, observe_label=True):
-    return self.obs_i(idx, observe_label)
+  def __call__(self, idx, st_label=True, norm=True):
+    return self.obs_i(idx, st_label, norm)
+
 
   def __iter__(self):
     return self
 
-  def __next__(self, observe_label=True):
+  def __next__(self, st_label=True, norm=True):
     try:
-      ne = self.obs_i(self._index, observe_label)
+      s, s_des = self.obs_i(self._index, st_label, norm)
       self._index += 1
-      return ne
+      return s, s_des, self._index - 1
     except IndexError:
       raise StopIteration
 
 
-  def obs_i(self, idx, observe_label):
-    a = self.data.norm_df.iloc[idx].to_numpy()
-    b = self.data.df.iloc[idx].to_numpy()
-    assert a[18] == b[18], 'The data in df and norm_df are not the same'
-    state_check = b[17]
-    if observe_label:
-      if 'مجاز' in state_check:
-        indx = [0, 17, 18]  #[name, condition, datetime]
-        state_des = a[indx]
-        indx = [0, 5, 17, 18]
-        state = np.delete(a, indx)
-      # print(state)
+  def obs_i(self, idx, st_label, norm):
+
+    if norm:
+      a = self.data.norm_df.iloc[idx].to_numpy()
+    else:
+      a = self.data.df.iloc[idx].to_numpy()
+    # assert a[18] == b[18], 'The data in df and norm_df are not the same'
+    # state_check = b[17]
+    if st_label:
+      # if 'مجاز' in state_check:
+      indx = [0, 17, 18]  #[name, condition, datetime]
+      state_des = a[indx]
+      indx = [0, 5, 17, 18]
+      state = np.delete(a, indx)
       return state, state_des
+
     else:
       return ut.extract(self.data.df, idx)
 
@@ -109,14 +113,17 @@ class Reinforce:
     self.rewards.append(reward)
     self.probs.append(action_prob)
 
-  def condition_(self, description):
+
+  @staticmethod
+  def condition(description):
     if 'مجاز' in description[1]:
       return True
     else:
       return False
 
+
   def _create_model(self):
-    ''' builds the model using keras'''
+    ''' builds the model using keras '''
     model = keras.Sequential()
     model.add(Dense(24, input_shape=self.state_shape, activation="relu"))
     model.add(Dense(12, activation="relu"))
@@ -124,7 +131,6 @@ class Reinforce:
     'plot the model Graph'
     # keras.utils.plot_model(model, "my_first_model.png")
     # keras.utils.plot_model(model, "my_first_model_with_shape_info.png", show_shapes=True)
-
     # output shape is according to the number of action
     # The softmax function outputs a probability distribution over the actions
     model.add(Dense(self.action_shape, activation="softmax"))
@@ -132,6 +138,7 @@ class Reinforce:
                   optimizer=Adam(lr=self.learning_rate))
     model.summary()
     return model
+
 
   def get_action(self, state_):
     '''samples the next action based on the policy probabilty distribution
@@ -148,13 +155,18 @@ class Reinforce:
 
     return action, action_probability_distribution
 
-  def calculator(self):
+
+  def calculator(self, idx):
+
+    current_state = self.st(idx, norm=False)
+    print(current_state)
+    list_ = ut.extract(self.st.data.df, idx)
+    print(list_)
     pass
 
 
 
-
-  def env_reaction(self, action, state_des):
+  def env_reaction(self, action, state_des, idx):
     """
     In this function we have to calculate the Reward and 'done'
     output
@@ -175,18 +187,21 @@ class Reinforce:
       "BUY"
       if self.condition(state_des):
         "To Do: buy a share"
-         a = self.calculator()
-        self.online_portfolio.append()
+        a = self.calculator(idx)
+        rew = 0
+        # self.online_portfolio.append()
       else:
         rew = 0
     elif action == 2:
       "SELL"
       if self.condition(state_des):
         "To do: Sell"
-        if "وجود داشت":
+        # if "وجود داشت":
+        rew = 0
       else:
         rew = 0
 
+    return rew
 
 
   def get_discounted_rewards(self, rewards):
@@ -246,17 +261,17 @@ class Reinforce:
         done = False
         episode_reward = 0  # record episode reward
         while not done:
-
-          state, state_des = next(self.st) # itrator
-
+          action = 1
+          state, state_des, idx = next(self.st) # itrator
+          print(state_des, idx)
           # play an action and record the game state & reward per episode
-          action, prob = self.get_action(state)
+          # action, prob = self.get_action(state)
           # print(action, prob)
-          remain_budget, reward, done = self.env_reaction(action, state_des)
+          # remain_budget, reward, done =
+          print('rew = ', self.env_reaction(action, state_des, idx))
 
           # action_name = ut.detect_action(action)
           # print('action name', action, action_name)
-
 
           done = True
 
@@ -279,5 +294,5 @@ class Reinforce:
 
 
 
-result = Reinforce()
-result.train(3)
+result = Reinforce(Budget=100)
+result.train(1)
