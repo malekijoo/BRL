@@ -56,25 +56,19 @@ class Observe:
     else:
       return ut.extract(self.data.df, idx)
 
-  @classmethod
-  def condition_(cls, idx):
-    if 'مجاز' in cls.data.df.iloc[idx]['condition']:
-      return True
-    else:
-      return False
 
 
 ''' This is the agent'''
 
 class Reinforce:
 
-  def __init__(self):
+  def __init__(self, Budget):
 
     self.st = Observe()
     self.state_shape = self.st(0)[0].shape
     # print(self.state_shape)
     # st(1706, st=False)
-
+    self.budget = Budget
     self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
     self.action_shape = self.action.shape[0]
     print('action && action name ', self.action, self.action_name, self.action_shape)
@@ -111,7 +105,11 @@ class Reinforce:
     self.rewards.append(reward)
     self.probs.append(action_prob)
 
-
+  def condition_(self, description):
+    if 'مجاز' in description[1]:
+      return True
+    else:
+      return False
 
   def _create_model(self):
     ''' builds the model using keras'''
@@ -146,7 +144,7 @@ class Reinforce:
 
     return action, action_probability_distribution
 
-  def reward_function(self, action, state_des):
+  def env_reaction(self, action, state_des):
     """
     In this function we have to calculate the Reward and 'done'
     output
@@ -155,11 +153,25 @@ class Reinforce:
 
     input
     'state_description': [Name, condition, Datetime]
-
+    'action': the selected action between {'Pass': 0, 'Buy': 1, 'Sell': 2}
     """
     "TO DO: we need to design budget, because the policy need to be rendered base on the buy and sell "
 
-
+    if action == 0:
+      "PASS"
+      rew = [0]
+    elif action == 1:
+      "BUY"
+      if self.condition(state_des):
+        "To Do: buy a share"
+      else:
+        rew = [0]
+    elif action == 2:
+      "SELL"
+      if CON:
+        "To do: Sell"
+      else:
+        rew = [0]
 
 
 
@@ -226,7 +238,7 @@ class Reinforce:
           # play an action and record the game state & reward per episode
           action, prob = self.get_action(state)
           # print(action, prob)
-          budget, share, reward, done = self.reward_function(action, state_des)
+          remain_budget, reward, done = self.env_reaction(action, state_des)
 
           # action_name = ut.detect_action(action)
           # print('action name', action, action_name)

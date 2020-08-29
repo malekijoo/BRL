@@ -235,6 +235,7 @@ class REINFORCE:
                 print('state shape in train    *** ##@!!@ =', state.shape)
                 action, prob = self.get_action(state)
                 next_state, reward, done, _ = env.step(action)
+                print('__-----+------____    ', env.step(action))
                 self.remember(state, action, prob, reward)
                 state = next_state
                 episode_reward += reward
@@ -260,7 +261,7 @@ class REINFORCE:
     #     return load_model(path)
 
 
-agent=REINFORCE(env)
+agent = REINFORCE(env)
 agent.train(3, 1)
 
 
