@@ -144,34 +144,7 @@ class Reinforce:
 
     return action, action_probability_distribution
 
-  def env_reaction(self, action, state_des):
-    """
-    In this function we have to calculate the Reward and 'done'
-    output
-    'Reward': is a list of rewards that will be calculated in this function
-    'done': the process should be stopped or not.
 
-    input
-    'state_description': [Name, condition, Datetime]
-    'action': the selected action between {'Pass': 0, 'Buy': 1, 'Sell': 2}
-    """
-    "TO DO: we need to design budget, because the policy need to be rendered base on the buy and sell "
-
-    if action == 0:
-      "PASS"
-      rew = [0]
-    elif action == 1:
-      "BUY"
-      if self.condition(state_des):
-        "To Do: buy a share"
-      else:
-        rew = [0]
-    elif action == 2:
-      "SELL"
-      if CON:
-        "To do: Sell"
-      else:
-        rew = [0]
 
 
 
