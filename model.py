@@ -69,9 +69,12 @@ class Reinforce:
     # print(self.state_shape)
     # st(1706, st=False)
     self.budget = Budget
+
     self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
     self.action_shape = self.action.shape[0]
     print('action && action name ', self.action, self.action_name, self.action_shape)
+
+
 
     self.gamma = 0.99  # decay rate of past observations
     self.alpha = 1e-4  # learning rate in the policy gradient
@@ -82,6 +85,7 @@ class Reinforce:
     #     self.model = self.load_model(path)  # import model
 
     # record observations
+    self.online_portfolio = []
     self.states = []
     self.gradients = []
     self.rewards = []
@@ -144,6 +148,12 @@ class Reinforce:
 
     return action, action_probability_distribution
 
+  def calculator(self):
+    pass
+
+
+
+
   def env_reaction(self, action, state_des):
     """
     In this function we have to calculate the Reward and 'done'
@@ -159,19 +169,23 @@ class Reinforce:
 
     if action == 0:
       "PASS"
-      rew = [0]
+      rew = 0
+
     elif action == 1:
       "BUY"
       if self.condition(state_des):
         "To Do: buy a share"
+         a = self.calculator()
+        self.online_portfolio.append()
       else:
-        rew = [0]
+        rew = 0
     elif action == 2:
       "SELL"
-      if CON:
+      if self.condition(state_des):
         "To do: Sell"
+        if "وجود داشت":
       else:
-        rew = [0]
+        rew = 0
 
 
 
