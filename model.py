@@ -78,7 +78,7 @@ class Reinforce:
     self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
     self.action_shape = self.action.shape[0]
     print('action && action name ', self.action, self.action_name, self.action_shape)
-
+    self.bought_pred = None
 
 
     self.gamma = 0.99  # decay rate of past observations
@@ -157,8 +157,8 @@ class Reinforce:
     # transform state
     state = state.reshape([1, state.shape[0]])
     # get action probably
-    action_pred, bought_pred = self.model.predict(state)
-    print(action_pred, bought_pred)
+    action_pred, self.bought_pred = self.model.predict(state)
+    print(action_pred, self.bought_pred)
     action_probability_distribution = action_pred.flatten()
     # norm action probability distribution
     action_probability_distribution /= np.sum(action_probability_distribution)
@@ -173,7 +173,11 @@ class Reinforce:
     current_state = self.st(idx, norm=False)
 
     if self.budget > 0:
-      worth = np.random.choice(range(0, self.budget), p=self.distribution)
+      print(self.bought_pred.shape)
+      if self.budget < 3:
+        rew = 0,
+      else:
+        worth = (self.budget * self.bought_pred.flatten())[0]
       print('worth  = ', worth)
       self.distribution.append(worth)
     # self.budget -= worth
@@ -206,21 +210,19 @@ class Reinforce:
 
     elif action == 1:
       "BUY"
-      if self.condition(state_des):
-        "To Do: buy a share"
-        a = self.buy(idx)
-        rew = 0
-        # self.online_portfolio.append()
-      else:
-        rew = 0
+      "To Do: buy a share"
+      a = self.buy(idx)
+      rew = 0
+      # self.online_portfolio.append()
+
     elif action == 2:
       "SELL"
-      if self.condition(state_des):
-        "To do: Sell"
-        # if "وجود داشت":
-        rew = 0
-      else:
-        rew = 0
+
+      "To do: Sell"
+      # if "وجود داشت":
+      rew = 0
+    else:
+      rew = 0
 
     return rew
 
@@ -286,10 +288,11 @@ class Reinforce:
           state, state_des, idx = next(self.st) # itrator
           # print(state_des, idx)
           # play an action and record the game state & reward per episode
-          action, prob = self.get_action(state)
-          # print(action, prob)
-          # remain_budget, reward, done =
-          # print('rew = ', self.env_reaction(action, state_des, idx))
+          if self.condition(state_des):
+            action, prob = self.get_action(state)
+            # print(action, prob)
+            # remain_budget, reward, done =
+            print('rew = ', self.env_reaction(action, state_des, idx))
 
           # action_name = ut.detect_action(action)
           # print('action name', action, action_name)
