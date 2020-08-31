@@ -5,6 +5,7 @@ from read_data import dataset
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Dense, Input
 
@@ -66,13 +67,13 @@ class Observe:
 
 class Reinforce:
 
-  def __init__(self, Budget):
+  def __init__(self, budget):
 
     self.st = Observe()
     self.state_shape = self.st(0)[0].shape
     # print(self.state_shape)
     # st(1706, st=False)
-    self.budget = Budget
+    self.budget = budget
 
     self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
     self.action_shape = self.action.shape[0]
@@ -90,6 +91,7 @@ class Reinforce:
 
     # record observations
     self.online_portfolio = []
+    self.distribution = []
     self.states = []
     self.gradients = []
     self.rewards = []
@@ -124,17 +126,25 @@ class Reinforce:
 
   def _create_model(self):
     ''' builds the model using keras '''
-    model = keras.Sequential()
-    model.add(Dense(24, input_shape=self.state_shape, activation="relu"))
-    model.add(Dense(12, activation="relu"))
 
-    'plot the model Graph'
-    # keras.utils.plot_model(model, "my_first_model.png")
-    # keras.utils.plot_model(model, "my_first_model_with_shape_info.png", show_shapes=True)
-    # output shape is according to the number of action
-    # The softmax function outputs a probability distribution over the actions
-    model.add(Dense(self.action_shape, activation="softmax"))
-    model.compile(loss="categorical_crossentropy",
+    inputs = Input(shape=self.state_shape, name='input')
+    x = Dense(16, activation='relu', name='layer_16')(inputs)
+    x = Dense(32, activation='relu', name='layer_32')(x)
+    output1 = Dense(self.action_shape, activation="softmax", name='action_pred')(x)
+    output2 = Dense(1, activation='sigmoid', name='bought_pred')(x)
+
+    model = Model(inputs=inputs, outputs=[output1, output2])
+    # model = keras.Sequential()
+    # model.add(Dense(24, input_shape=self.state_shape, activation="relu"))
+    # model.add(Dense(12, activation="relu"))
+    #
+    # 'plot the model Graph'
+    # # keras.utils.plot_model(model, "my_first_model.png")
+    # # keras.utils.plot_model(model, "my_first_model_with_shape_info.png", show_shapes=True)
+    # # output shape is according to the number of action
+    # # The softmax function outputs a probability distribution over the actions
+    # model.add(Dense(self.action_shape, activation="softmax"))
+    model.compile(loss=["categorical_crossentropy", 'mse'],
                   optimizer=Adam(lr=self.learning_rate))
     model.summary()
     return model
@@ -147,7 +157,9 @@ class Reinforce:
     # transform state
     state = state.reshape([1, state.shape[0]])
     # get action probably
-    action_probability_distribution = self.model.predict(state).flatten()
+    action_pred, bought_pred = self.model.predict(state)
+    print(action_pred, bought_pred)
+    action_probability_distribution = action_pred.flatten()
     # norm action probability distribution
     action_probability_distribution /= np.sum(action_probability_distribution)
     # sample action
@@ -156,19 +168,27 @@ class Reinforce:
     return action, action_probability_distribution
 
 
-  def calculator(self, idx):
+  def buy(self, idx):
 
     current_state = self.st(idx, norm=False)
-    print(current_state)
-    list_ = ut.extract(self.st.data.df, idx)
-    print(list_)
-    pass
+
+    if self.budget > 0:
+      worth = np.random.choice(range(0, self.budget), p=self.distribution)
+      print('worth  = ', worth)
+      self.distribution.append(worth)
+    # self.budget -= worth
+    future_rew_list = ut.extract(self.st.data.df, idx)
+    # print(future_rew_list)
+
+    return future_rew_list
 
 
 
   def env_reaction(self, action, state_des, idx):
+
     """
-    In this function we have to calculate the Reward and 'done'
+    In this function we have to calculate the Reward and the boolean 'done'
+
     output
     'Reward': is a list of rewards that will be calculated in this function
     'done': the process should be stopped or not.
@@ -176,8 +196,9 @@ class Reinforce:
     input
     'state_description': [Name, condition, Datetime]
     'action': the selected action between {'Pass': 0, 'Buy': 1, 'Sell': 2}
+    'idx': the index of the state in dataset
     """
-    "TO DO: we need to design budget, because the policy need to be rendered base on the buy and sell "
+    "TO DO: we need to design the budget, because the policy need to be rendered base on the buy and sell "
 
     if action == 0:
       "PASS"
@@ -187,7 +208,7 @@ class Reinforce:
       "BUY"
       if self.condition(state_des):
         "To Do: buy a share"
-        a = self.calculator(idx)
+        a = self.buy(idx)
         rew = 0
         # self.online_portfolio.append()
       else:
@@ -263,12 +284,12 @@ class Reinforce:
         while not done:
           action = 1
           state, state_des, idx = next(self.st) # itrator
-          print(state_des, idx)
+          # print(state_des, idx)
           # play an action and record the game state & reward per episode
-          # action, prob = self.get_action(state)
+          action, prob = self.get_action(state)
           # print(action, prob)
           # remain_budget, reward, done =
-          print('rew = ', self.env_reaction(action, state_des, idx))
+          # print('rew = ', self.env_reaction(action, state_des, idx))
 
           # action_name = ut.detect_action(action)
           # print('action name', action, action_name)
@@ -294,5 +315,5 @@ class Reinforce:
 
 
 
-result = Reinforce(Budget=100)
-result.train(1)
+result = Reinforce(budget=100)
+result.train(15)
