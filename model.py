@@ -66,7 +66,7 @@ class Reinforce:
         # print(self.state_shape)
         # st(1706, st=False)
         self.budget = budget
-
+        'TO DO: the self.action should be redefined'
         self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
         self.action_shape = self.action.shape[0]
         print('action && action name ', self.action, self.action_name, self.action_shape)
@@ -173,7 +173,11 @@ class Reinforce:
 
       return future_rew_list, [state_desc[0], sh_volume]
 
-    def env_reaction(self, action, state_des, idx):
+    def sell(self, idx):
+      state, state_desc = self.st(idx, norm=False)
+      print('we are here now ')
+
+    def env_reaction(self, action, idx):
       """
         In this function we have to calculate the Reward and the boolean 'done'
 
@@ -201,9 +205,10 @@ class Reinforce:
         rew, asset = self.buy(idx)
         self.online_portfolio.append(asset)
         print(self.online_portfolio)
+
       elif action == 2:
         "SELL"
-
+        self.sell(idx)
         "To do: Sell"
         # if "وجود داشت":
 
@@ -274,10 +279,10 @@ class Reinforce:
                 # play an action and record the game state & reward per episode
                 if self.condition(state_des):
                     action, prob = self.get_action(state)
-                    action = 1
+                    action = 2
                     # print(action, prob)
                     # remain_budget, reward, done =
-                    print('rew = ', self.env_reaction(action, state_des, idx))
+                    print('rew = ', self.env_reaction(action, idx))
 
                 # action_name = ut.detect_action(action)
                 # print('action name', action, action_name)
