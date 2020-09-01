@@ -175,6 +175,7 @@ class Reinforce:
             rew, asset = 0, False
             return rew, asset
 
+
     def sell(self, idx):
         state, state_desc = self.st(idx, norm=False)
         asset_balance = [x for x in self.online_portfolio if state_desc[0] in x[0]]
