@@ -156,54 +156,56 @@ class Reinforce:
 
     def buy(self, idx):
 
-        state, state_desc = self.st(idx, norm=False)
-        print(self.bought_pred, self.budget, state_desc[0], state[0])
-        if self.budget > 500000:
-            if self.budget < 200000:
-                rew, asset = 0, False
-                return rew, asset
-            else:
-                sh_bud = round(self.budget * self.bought_pred.flatten()[0])
-                sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
-                sh_volume = round(sh_bud_minus_commission / state[0])
-                self.budget -= sh_bud
-                # print(sh_volume, sh_bud_minus_commission, sh_bud)
-                future_rew_list = ut.extract(self.st.data.df, idx)
-                # print(future_rew_list)
-                return future_rew_list, [state_desc[0], sh_volume]
+      state, state_desc = self.st(idx, norm=False)
+      # print(self.bought_pred, self.budget, state_desc[0], state[0])
+      if self.budget > 500000:
+        if self.budget < 200000:
+          rew = {}
+          return rew
         else:
-            rew, asset = 0, False
-            return rew, asset
-
+          sh_bud = round(self.budget * self.bought_pred.flatten()[0])
+          sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
+          sh_volume = round(sh_bud_minus_commission / state[0])
+          self.budget -= sh_bud
+          # print(sh_volume, sh_bud_minus_commission, sh_bud)
+          future_rew_list = ut.extract(self.st.data.df, idx)
+          # print(future_rew_list)
+          self.online_portfolio.append([state_desc[0], sh_volume])
+          return future_rew_list
+      else:
+        rew = {}
+        return rew
 
     def sell(self, idx):
-        state, state_desc = self.st(idx, norm=False)
-        asset_balance = [x for x in self.online_portfolio if state_desc[0] in x[0]]
-        # print(state_desc[0], asset_balance, self.budget),
-        # print('online portfolio', self.online_portfolio)
-        if asset_balance:
-          sh_name = asset_balance[0][0]
-          if len(asset_balance) > 1:
-            sh_volume = sum([x[1] for x in asset_balance])
-            # print(sh_volume)
-          else:
-            sh_volume = asset_balance[0][1]
+      state, state_desc = self.st(idx, norm=False)
+      asset_balance = [x for x in self.online_portfolio if state_desc[0] in x[0]]
+      # print(state_desc[0], asset_balance, self.budget),
+      # print('online portfolio', self.online_portfolio)
+      if asset_balance:
+        sh_name = asset_balance[0][0]
+        if len(asset_balance) > 1:
+          sh_volume = sum([x[1] for x in asset_balance])
           # print(sh_volume)
-          sell_volume = round(sh_volume*self.bought_pred.flatten()[0])
-          self.budget += (sell_volume * state[0])
-          self.online_portfolio = [x for x in self.online_portfolio if x not in asset_balance]
-          future_rew_list = ut.extract(self.st.data.df, idx)
-          if sh_volume > 1:
-            self.online_portfolio.append([sh_name, (sh_volume-sell_volume)])
+        else:
+          sh_volume = asset_balance[0][1]
+        # print(sh_volume)
+        sell_volume = round(sh_volume*self.bought_pred.flatten()[0])
+        self.budget += (sell_volume * state[0])
+        self.online_portfolio = [x for x in self.online_portfolio if x not in asset_balance]
+        future_rew_list = ut.extract(self.st.data.df, idx)
+        print(type(future_rew_list))
+
+        if sh_volume > 1:
+          self.online_portfolio.append([sh_name, (sh_volume-sell_volume)])
           # print(sh_name, sell_volume)
           # print(state[0], state[0]*sell_volume)
-        else:
-          future_rew_list = {}
+      else:
+        future_rew_list = {}
 
-        # print(state_desc[0], asset_balance, self.budget)
-        # print('online portfolio', self.online_portfolio)
-        # print('this is done\n')
-        return future_rew_list
+      # print(state_desc[0], asset_balance, self.budget)
+      # print('online portfolio', self.online_portfolio)
+      # print('this is done\n')
+      return future_rew_list
 
     def env_reaction(self, action, idx):
         """
@@ -224,23 +226,23 @@ class Reinforce:
 
         if action == 0:
             "PASS"
-            rew = 0
+            rew = []
 
         elif action == 1:
             "BUY"
-            rew, asset = self.buy(idx)
-            if asset:
-                self.online_portfolio.append(asset)
-            print(self.online_portfolio)
+            rew = self.buy(idx)
 
         elif action == 2:
-            "SELL"
+          "SELL"
+          if len(self.online_portfolio) > 1:
             rew = self.sell(idx)
-
+          else:
+            rew = []
         else:
-            rew = 0
-
-            # return rew
+            rew = []
+        print(rew)
+        print(self.online_portfolio)
+        return rew
 
     def get_discounted_rewards(self, rewards):
         '''Use gamma to calculate the total reward discounting for rewards
@@ -300,16 +302,11 @@ class Reinforce:
             episode_reward = 0  # record episode reward
             while not done:
                 state, state_des, idx = next(self.st)  # itrator
-                # print(state_des, idx)
-                # play an action and record the game state & reward per episode
                 if self.condition(state_des):
                     action, prob = self.get_action(state)
                     action = 2
-                    # print(action, prob)
-                    # remain_budget, reward, done =
-                    self.env_reaction(action, idx)
-                    # action_name = ut.detect_action(action)
-                    # print('action name', action, action_name)
+                    rew = self.env_reaction(action, idx)
+
 
                 done = True
 
