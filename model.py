@@ -177,13 +177,30 @@ class Reinforce:
         return rew, asset
 
     def sell(self, idx):
-      state, state_desc = self.st(idx, norm=False)
-      print(state_desc[0])
-      for i in self.online_portfolio:
-        print(i)
+        state, state_desc = self.st(idx, norm=False)
+        asset_balance = [x for x in self.online_portfolio if state_desc[0] in x[0]]
+        print(state_desc[0], asset_balance)
+        if asset_balance:
+          sh_name = asset_balance[0][0]
+          if len(asset_balance) > 1:
+            sh_volume = sum([x[1] for x in asset_balance])
+            # print(sh_volume)
+          else:
+            sh_volume = asset_balance[0][1]
+          # print(sh_volume)
+          sell_volume = round(sh_volume*self.bought_pred.flatten()[0])
+          self.budget += (sell_volume * state[0])
+          future_rew_list = ut.extract(self.st.data.df, idx)
+          if sh_volume > 1:
+            self.online_portfolio.append([sh_name, (sh_volume-sell_volume)])
+
+        else:
+            print('there')
+            future_rew_list = {}
+        return future_rew_list,
 
     def env_reaction(self, action, idx):
-      """
+        """
         In this function we have to calculate the Reward and the boolean 'done'
 
         output
@@ -272,13 +289,13 @@ class Reinforce:
        render_n - number of episodes between env rendering """
 
         total_rewards = np.zeros(episodes)
-
+        self.online_portfolio = [['آپ', 704.0], ['آسيا', 1498.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
+                                 ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
         for episode in range(episodes):
 
             done = False
             episode_reward = 0  # record episode reward
             while not done:
-
                 state, state_des, idx = next(self.st)  # itrator
                 # print(state_des, idx)
                 # play an action and record the game state & reward per episode
@@ -287,10 +304,9 @@ class Reinforce:
                     action = 2
                     # print(action, prob)
                     # remain_budget, reward, done =
-                    print('rew = ', self.env_reaction(action, idx))
-
-                # action_name = ut.detect_action(action)
-                # print('action name', action, action_name)
+                    self.env_reaction(action, idx)
+                    # action_name = ut.detect_action(action)
+                    # print('action name', action, action_name)
 
                 done = True
 
@@ -313,4 +329,4 @@ class Reinforce:
 
 
 result = Reinforce(budget=20000000)
-result.train(7)
+result.train(20)
