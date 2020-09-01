@@ -156,24 +156,24 @@ class Reinforce:
 
     def buy(self, idx):
 
-      state, state_desc = self.st(idx, norm=False)
-      print(self.bought_pred, self.budget, state_desc[0], state[0])
-      if self.budget > 500000:
-        if self.budget < 200000:
-          rew, asset = 0, False
-          return rew, asset
+        state, state_desc = self.st(idx, norm=False)
+        print(self.bought_pred, self.budget, state_desc[0], state[0])
+        if self.budget > 500000:
+            if self.budget < 200000:
+                rew, asset = 0, False
+                return rew, asset
+            else:
+                sh_bud = round(self.budget * self.bought_pred.flatten()[0])
+                sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
+                sh_volume = round(sh_bud_minus_commission / state[0])
+                self.budget -= sh_bud
+                # print(sh_volume, sh_bud_minus_commission, sh_bud)
+                future_rew_list = ut.extract(self.st.data.df, idx)
+                # print(future_rew_list)
+                return future_rew_list, [state_desc[0], sh_volume]
         else:
-          sh_bud = round(self.budget * self.bought_pred.flatten()[0])
-          sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
-          sh_volume = round(sh_bud_minus_commission / state[0])
-          self.budget -= sh_bud
-          # print(sh_volume, sh_bud_minus_commission, sh_bud)
-          future_rew_list = ut.extract(self.st.data.df, idx)
-          # print(future_rew_list)
-          return future_rew_list, [state_desc[0], sh_volume]
-      else:
-        rew, asset = 0, False
-        return rew, asset
+            rew, asset = 0, False
+            return rew, asset
 
     def sell(self, idx):
         state, state_desc = self.st(idx, norm=False)
@@ -236,10 +236,10 @@ class Reinforce:
             "To do: Sell"
             # if "وجود داشت":
 
-      else:
-        rew = 0
+        else:
+            rew = 0
 
-        # return rew
+            # return rew
 
     def get_discounted_rewards(self, rewards):
         '''Use gamma to calculate the total reward discounting for rewards
