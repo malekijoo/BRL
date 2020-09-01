@@ -197,7 +197,7 @@ class Reinforce:
         else:
             print('there')
             future_rew_list = {}
-        return future_rew_list,
+        return future_rew_list
 
     def env_reaction(self, action, idx):
         """
