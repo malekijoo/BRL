@@ -154,7 +154,6 @@ class Reinforce:
 
         return action, action_probability_distribution
 
-
     def buy(self, idx):
 
       state, state_desc = self.st(idx, norm=False)
@@ -214,25 +213,28 @@ class Reinforce:
 
         """
 
+        'TO DO: we need to design the budget, because the policy need to be rendered base on the buy and sell '
 
-      'TO DO: we need to design the budget, because the policy need to be rendered base on the buy and sell '
+        if action == 0:
+            "PASS"
+            rew = 0
 
-      if action == 0:
-        "PASS"
-        rew = 0
+        elif action == 1:
+            "BUY"
+            rew, asset = self.buy(idx)
+            if asset:
+                self.online_portfolio.append(asset)
+            print(self.online_portfolio)
 
-      elif action == 1:
-        "BUY"
-        rew, asset = self.buy(idx)
-        if asset:
-            self.online_portfolio.append(asset)
-        print(self.online_portfolio)
+        elif action == 2:
+            "SELL"
+            self.sell(idx)
+            # for i in self.online_portfolio:
+            #   print(i)
+            # print(self.online_portfolio)
 
-      elif action == 2:
-        "SELL"
-        self.sell(idx)
-        "To do: Sell"
-        # if "وجود داشت":
+            "To do: Sell"
+            # if "وجود داشت":
 
       else:
         rew = 0
