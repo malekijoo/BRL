@@ -161,7 +161,8 @@ class Reinforce:
       print(self.bought_pred, self.budget, state_desc[0], state[0])
       if self.budget > 500000:
         if self.budget < 200000:
-          rew = 0,
+          rew, asset = 0, False
+          return rew, asset
         else:
           sh_bud = round(self.budget * self.bought_pred.flatten()[0])
           sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
@@ -170,12 +171,16 @@ class Reinforce:
           # print(sh_volume, sh_bud_minus_commission, sh_bud)
           future_rew_list = ut.extract(self.st.data.df, idx)
           # print(future_rew_list)
-
-      return future_rew_list, [state_desc[0], sh_volume]
+          return future_rew_list, [state_desc[0], sh_volume]
+      else:
+        rew, asset = 0, False
+        return rew, asset
 
     def sell(self, idx):
       state, state_desc = self.st(idx, norm=False)
-      print('we are here now ')
+      print(state_desc[0])
+      for i in self.online_portfolio:
+        print(i)
 
     def env_reaction(self, action, idx):
       """
@@ -201,9 +206,9 @@ class Reinforce:
 
       elif action == 1:
         "BUY"
-        "To Do: buy a share"
         rew, asset = self.buy(idx)
-        self.online_portfolio.append(asset)
+        if asset:
+            self.online_portfolio.append(asset)
         print(self.online_portfolio)
 
       elif action == 2:
