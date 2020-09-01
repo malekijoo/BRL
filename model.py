@@ -179,7 +179,8 @@ class Reinforce:
     def sell(self, idx):
         state, state_desc = self.st(idx, norm=False)
         asset_balance = [x for x in self.online_portfolio if state_desc[0] in x[0]]
-        print(state_desc[0], asset_balance)
+        # print(state_desc[0], asset_balance, self.budget),
+        # print('online portfolio', self.online_portfolio)
         if asset_balance:
           sh_name = asset_balance[0][0]
           if len(asset_balance) > 1:
@@ -190,13 +191,18 @@ class Reinforce:
           # print(sh_volume)
           sell_volume = round(sh_volume*self.bought_pred.flatten()[0])
           self.budget += (sell_volume * state[0])
+          self.online_portfolio = [x for x in self.online_portfolio if x not in asset_balance]
           future_rew_list = ut.extract(self.st.data.df, idx)
           if sh_volume > 1:
             self.online_portfolio.append([sh_name, (sh_volume-sell_volume)])
-
+          # print(sh_name, sell_volume)
+          # print(state[0], state[0]*sell_volume)
         else:
-            print('there')
-            future_rew_list = {}
+          future_rew_list = {}
+
+        # print(state_desc[0], asset_balance, self.budget)
+        # print('online portfolio', self.online_portfolio)
+        # print('this is done\n')
         return future_rew_list
 
     def env_reaction(self, action, idx):
@@ -229,13 +235,7 @@ class Reinforce:
 
         elif action == 2:
             "SELL"
-            self.sell(idx)
-            # for i in self.online_portfolio:
-            #   print(i)
-            # print(self.online_portfolio)
-
-            "To do: Sell"
-            # if "وجود داشت":
+            rew = self.sell(idx)
 
         else:
             rew = 0
@@ -292,7 +292,7 @@ class Reinforce:
        render_n - number of episodes between env rendering """
 
         total_rewards = np.zeros(episodes)
-        self.online_portfolio = [['آپ', 704.0], ['آسيا', 1498.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
+        self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
                                  ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
         for episode in range(episodes):
 
@@ -332,4 +332,4 @@ class Reinforce:
 
 
 result = Reinforce(budget=20000000)
-result.train(20)
+result.train(15)
