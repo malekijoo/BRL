@@ -160,8 +160,7 @@ class Reinforce:
       # print(self.bought_pred, self.budget, state_desc[0], state[0])
       if self.budget > 500000:
         if self.budget < 200000:
-          rew = {}
-          return rew
+          return 0
         else:
           sh_bud = round(self.budget * self.bought_pred.flatten()[0])
           sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
@@ -173,8 +172,7 @@ class Reinforce:
           self.online_portfolio.append([state_desc[0], sh_volume])
           return future_rew_list
       else:
-        rew = {}
-        return rew
+        return 0
 
     def sell(self, idx):
       state, state_desc = self.st(idx, norm=False)
@@ -193,18 +191,14 @@ class Reinforce:
         self.budget += (sell_volume * state[0])
         self.online_portfolio = [x for x in self.online_portfolio if x not in asset_balance]
         future_rew_list = ut.extract(self.st.data.df, idx)
-        print(type(future_rew_list))
+        future_rew_list['percent'] = -1 * future_rew_list['percent']
 
         if sh_volume > 1:
           self.online_portfolio.append([sh_name, (sh_volume-sell_volume)])
-          # print(sh_name, sell_volume)
-          # print(state[0], state[0]*sell_volume)
-      else:
-        future_rew_list = {}
 
-      # print(state_desc[0], asset_balance, self.budget)
-      # print('online portfolio', self.online_portfolio)
-      # print('this is done\n')
+      else:
+        future_rew_list = 0
+
       return future_rew_list
 
     def env_reaction(self, action, idx):
@@ -226,7 +220,7 @@ class Reinforce:
 
         if action == 0:
             "PASS"
-            rew = []
+            rew = 0
 
         elif action == 1:
             "BUY"
@@ -234,13 +228,13 @@ class Reinforce:
 
         elif action == 2:
           "SELL"
-          if len(self.online_portfolio) > 1:
+          if len(self.online_portfolio) > 0:
             rew = self.sell(idx)
           else:
-            rew = []
+            rew = 0
         else:
-            rew = []
-        print(rew)
+            rew = 0
+
         print(self.online_portfolio)
         return rew
 
@@ -294,8 +288,8 @@ class Reinforce:
        render_n - number of episodes between env rendering """
 
         total_rewards = np.zeros(episodes)
-        self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
-                                 ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
+        # self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
+        #                          ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
         for episode in range(episodes):
 
             done = False
@@ -306,7 +300,6 @@ class Reinforce:
                     action, prob = self.get_action(state)
                     action = 2
                     rew = self.env_reaction(action, idx)
-
 
                 done = True
 

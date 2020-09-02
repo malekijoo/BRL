@@ -34,9 +34,10 @@ def extract(df, idx):
     target = df[df['name'] == name]
     future_price = []
     for target_date, obs in target.groupby(by=target['datetime'].values.astype('<M8[D]')):
-        deltatime = pd.Timedelta(pd.to_datetime(obs.iloc[0]['datetime']).date() - datetime.date()).days
-        if 0 < deltatime and 20 > deltatime:
-            future_price.append([deltatime, (((obs['price'].mean() - price) / 100 +
-                                              (obs['ydp'].mean() - price) / 100) / 2)])
+      deltatime = pd.Timedelta(pd.to_datetime(obs.iloc[0]['datetime']).date() - datetime.date()).days
+      if 0 < deltatime and 20 > deltatime:
+        future_price.append([deltatime, (((obs['price'].mean() - price) / 100 + (obs['ydp'].mean() - price) / 100) /2)])
 
-    return future_price  # [delta day, mean() all the day price]
+    dataframe = pd.DataFrame(future_price, columns=['deltatime', 'percent'])
+
+    return dataframe  # [delta day, mean() all the day price]
