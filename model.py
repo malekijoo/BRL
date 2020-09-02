@@ -236,6 +236,8 @@ class Reinforce:
             rew = 0
 
         print(self.online_portfolio)
+        if rew !=0:
+            print(horay)
         return rew
 
     def get_discounted_rewards(self, rewards):
@@ -288,8 +290,8 @@ class Reinforce:
        render_n - number of episodes between env rendering """
 
         total_rewards = np.zeros(episodes)
-        # self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
-        #                          ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
+        self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
+                                 ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
         for episode in range(episodes):
 
             done = False
