@@ -27,7 +27,8 @@ def detect_action(a):
     return t.loc[a].values[0], t.loc[a].index.values
 
 
-def extract(df, idx):
+def extract(df, idx, share_volume, budget):
+    'TO DO: YOU HAVE TO COME BACK TO THIS FUCTION AND MAKE IT CORRECT'
     datetime = pd.to_datetime(df.iloc[idx][18])
     price = df.iloc[idx][1]
     name = df.iloc[idx][0]
@@ -36,8 +37,8 @@ def extract(df, idx):
     for target_date, obs in target.groupby(by=target['datetime'].values.astype('<M8[D]')):
       deltatime = pd.Timedelta(pd.to_datetime(obs.iloc[0]['datetime']).date() - datetime.date()).days
       if 0 < deltatime and 20 > deltatime:
-        future_price.append([deltatime, (((obs['price'].mean() - price) / 100 + (obs['ydp'].mean() - price) / 100) /2)])
+        a = (((obs['price'].mean() - price) / 100 + (obs['ydp'].mean() - price) / 100) /2) * share_volume * price
+        print('consider this ', deltatime, a, price, obs['price'].mean(), share_volume, budget, round(a/budget, 4), (price*share_volume)/budget)
+        future_price.append([deltatime, round(a/budget, 5), round(a, 5)])
 
-    dataframe = pd.DataFrame(future_price, columns=['deltatime', 'percent'])
-
-    return dataframe  # [delta day, mean() all the day price]
+    return pd.DataFrame(future_price, columns=['deltatime', 'percent', 'asset']) #[delta day, mean() all the day price]

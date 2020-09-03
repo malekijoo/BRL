@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import utility as ut
 from read_data import dataset
 
@@ -160,19 +161,18 @@ class Reinforce:
       # print(self.bought_pred, self.budget, state_desc[0], state[0])
       if self.budget > 500000:
         if self.budget < 200000:
-          return 0
+          return pd.DataFrame({'deltatime': []})
         else:
           sh_bud = round(self.budget * self.bought_pred.flatten()[0])
           sh_bud_minus_commission = round(sh_bud - (sh_bud * 0.014))  # (sh_bud*0.014) is the commission
           sh_volume = round(sh_bud_minus_commission / state[0])
+          future_rew_list = ut.extract(self.st.data.df, idx, sh_volume, self.budget)
           self.budget -= sh_bud
-          # print(sh_volume, sh_bud_minus_commission, sh_bud)
-          future_rew_list = ut.extract(self.st.data.df, idx)
-          # print(future_rew_list)
           self.online_portfolio.append([state_desc[0], sh_volume])
           return future_rew_list
       else:
-        return 0
+        return pd.DataFrame({'deltatime': []})
+
 
     def sell(self, idx):
       state, state_desc = self.st(idx, norm=False)
@@ -188,21 +188,20 @@ class Reinforce:
           sh_volume = asset_balance[0][1]
         # print(sh_volume)
         sell_volume = round(sh_volume*self.bought_pred.flatten()[0])
-        self.budget += (sell_volume * state[0])
         self.online_portfolio = [x for x in self.online_portfolio if x not in asset_balance]
-        future_rew_list = ut.extract(self.st.data.df, idx)
-        future_rew_list['percent'] = -1 * future_rew_list['percent']
-
+        future_rew_list = ut.extract(self.st.data.df, idx, sell_volume, self.budget)
+        future_rew_list['percent'], future_rew_list['asset'] = -1*future_rew_list['percent'], -1*future_rew_list['asset']
+        self.budget += (sell_volume * state[0])
         if sh_volume > 1:
           self.online_portfolio.append([sh_name, (sh_volume-sell_volume)])
 
       else:
-        future_rew_list = 0
-
+        future_rew_list = pd.DataFrame({'deltatime': []})
+      # print(future_rew_list)
       return future_rew_list
 
     def env_reaction(self, action, idx):
-        """
+      """
         In this function we have to calculate the Reward and the boolean 'done'
 
         output
@@ -214,31 +213,43 @@ class Reinforce:
         'action': the selected action between {'Pass': 0, 'Buy': 1, 'Sell': 2}
         'idx': the index of the state in dataset
 
-        """
+      """
 
-        'TO DO: we need to design the budget, because the policy need to be rendered base on the buy and sell '
+      'TO DO: we need to design the budget, because the policy need to be rendered base on the buy and sell '
+      def rew_cal(frame):
+        'TO DO: YOU HAVE TO COME BACK TO THIS FUCTION AND MAKE IT CORRECT'
+        return frame.mean()['percent']
 
-        if action == 0:
-            "PASS"
-            rew = 0
 
-        elif action == 1:
-            "BUY"
-            rew = self.buy(idx)
+      if action == 0:
+        "PASS"
+        rew = 0
 
-        elif action == 2:
-          "SELL"
-          if len(self.online_portfolio) > 0:
-            rew = self.sell(idx)
+      elif action == 1:
+        "BUY"
+        rew_frame = self.buy(idx)
+        if not rew_frame.empty:
+          rew = rew_cal(rew_frame)
+        else:
+          rew = 0
+
+      elif action == 2:
+        "SELL"
+        if len(self.online_portfolio) > 0:
+          rew_frame = self.sell(idx)
+          if not rew_frame.empty:
+            rew = rew_cal(rew_frame)
           else:
+            print('rew is zero because the frame returns empty')
             rew = 0
         else:
-            rew = 0
+          rew = 0
+      else:
+        rew = 0
 
-        print(self.online_portfolio)
-        if rew !=0:
-            print(horay)
-        return rew
+      print(self.online_portfolio)
+
+      return rew
 
     def get_discounted_rewards(self, rewards):
         '''Use gamma to calculate the total reward discounting for rewards
@@ -290,8 +301,8 @@ class Reinforce:
        render_n - number of episodes between env rendering """
 
         total_rewards = np.zeros(episodes)
-        self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
-                                 ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0]]
+        # self.online_portfolio = [['آپ', 704.0], ['آسيا', 1300.0], ['آسيا', 1498.0], ['اخابر', 661.0], ['اخابر', 661.0],
+        #                          ['افق', 24.0], ['البرز', 327.0], ['بالبر', 36.0], ['آسيا', 140.0]]
         for episode in range(episodes):
 
             done = False
@@ -300,7 +311,6 @@ class Reinforce:
                 state, state_des, idx = next(self.st)  # itrator
                 if self.condition(state_des):
                     action, prob = self.get_action(state)
-                    action = 2
                     rew = self.env_reaction(action, idx)
 
                 done = True
