@@ -200,6 +200,12 @@ class Reinforce:
       # print(future_rew_list)
       return future_rew_list
 
+    def check(self, date_):
+      return ut.check_portfolio(self.st.data.df, date_, self.online_portfolio, self.budget)
+
+
+
+
     def env_reaction(self, action, idx):
       """
         In this function we have to calculate the Reward and the boolean 'done'
@@ -220,11 +226,9 @@ class Reinforce:
         'TO DO: YOU HAVE TO COME BACK TO THIS FUCTION AND MAKE IT CORRECT'
         return frame.mean()['percent']
 
-
       if action == 0:
         "PASS"
         rew = 0
-
       elif action == 1:
         "BUY"
         rew_frame = self.buy(idx)
@@ -232,7 +236,6 @@ class Reinforce:
           rew = rew_cal(rew_frame)
         else:
           rew = 0
-
       elif action == 2:
         "SELL"
         if len(self.online_portfolio) > 0:
@@ -240,15 +243,9 @@ class Reinforce:
           if not rew_frame.empty:
             rew = rew_cal(rew_frame)
           else:
-            print('rew is zero because the frame returns empty')
             rew = 0
         else:
           rew = 0
-      else:
-        rew = 0
-
-      print(self.online_portfolio)
-
       return rew
 
     def get_discounted_rewards(self, rewards):
@@ -312,6 +309,7 @@ class Reinforce:
                 if self.condition(state_des):
                     action, prob = self.get_action(state)
                     rew = self.env_reaction(action, idx)
+                    done = self.check(state_des[2])
 
                 done = True
 

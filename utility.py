@@ -38,7 +38,39 @@ def extract(df, idx, share_volume, budget):
       deltatime = pd.Timedelta(pd.to_datetime(obs.iloc[0]['datetime']).date() - datetime.date()).days
       if 0 < deltatime and 20 > deltatime:
         a = (((obs['price'].mean() - price) / 100 + (obs['ydp'].mean() - price) / 100) /2) * share_volume * price
-        print('consider this ', deltatime, a, price, obs['price'].mean(), share_volume, budget, round(a/budget, 4), (price*share_volume)/budget)
+        # print('consider this ', deltatime, a, price, obs['price'].mean(), share_volume, budget, round(a/budget, 4), (price*share_volume)/budget)
         future_price.append([deltatime, round(a/budget, 5), round(a, 5)])
 
     return pd.DataFrame(future_price, columns=['deltatime', 'percent', 'asset']) #[delta day, mean() all the day price]
+
+
+def check_portfolio(df, datetime, portfolio, budget):
+    done = False
+    wealth = []
+    datetime = pd.to_datetime(datetime)
+    print(datetime.date())
+    for i in portfolio:
+        name = i[0]
+        target = df[df['name'] == name]
+        for target_date, obs in target.groupby(by=target['datetime'].values.astype('<M8[D]')):
+            if target_date == datetime.date():
+                wealth.append(obs['price'].mean() * i[1])
+
+    if sum(wealth) + budget < 16000000:
+        done = True
+
+    return done
+
+    # for target_date, obs in df.groupby(by=df['datetime'].values.astype('<M8[D]')):
+
+
+    # df['datetime'] = pd.to_datetime(df['datetime'])
+    # # print(df['datetime'].dt.year)
+    # # print(df['datetime'].dt )
+    # dt0 = df[df['datetime'].dt.year == cond.year]
+    # # print(dt0)
+    # dt1 = dt0[dt0['datetime'].dt.month == cond.month]
+    # dt2 = dt1[dt1['datetime'].dt.day == cond.day]
+    # print(dt2)
+    # for i in portfolio:
+
