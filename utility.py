@@ -48,7 +48,6 @@ def check_portfolio(df, datetime, portfolio, budget):
     done = False
     wealth = []
     datetime = pd.to_datetime(datetime)
-    print(datetime.date())
     for i in portfolio:
         name = i[0]
         target = df[df['name'] == name]
@@ -56,9 +55,10 @@ def check_portfolio(df, datetime, portfolio, budget):
             if target_date == datetime.date():
                 wealth.append(obs['price'].mean() * i[1])
 
-    if sum(wealth) + budget < 16000000:
+    a = sum(wealth) + budget
+    print(a)
+    if a < 16000000:
         done = True
-
     return done
 
     # for target_date, obs in df.groupby(by=df['datetime'].values.astype('<M8[D]')):

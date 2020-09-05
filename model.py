@@ -64,8 +64,7 @@ class Reinforce:
 
         self.st = Observe()
         self.state_shape = self.st(0)[0].shape
-        # print(self.state_shape)
-        # st(1706, st=False)
+
         self.budget = budget
         'TO DO: the self.action should be redefined'
         self.action, self.action_name = ut.detect_action([0.583, 0.233, 0.184])
@@ -83,7 +82,6 @@ class Reinforce:
 
         # record observations
         self.online_portfolio = []
-        # self.distribution = []
         self.states = []
         self.gradients = []
         self.rewards = []
@@ -136,7 +134,7 @@ class Reinforce:
         # model.add(Dense(self.action_shape, activation="softmax"))
         model.compile(loss=["categorical_crossentropy", 'mse'],
                       optimizer=Adam(lr=self.learning_rate))
-        model.summary()
+        # model.summary()
         return model
 
     def get_action(self, state_):
@@ -177,16 +175,12 @@ class Reinforce:
     def sell(self, idx):
       state, state_desc = self.st(idx, norm=False)
       asset_balance = [x for x in self.online_portfolio if state_desc[0] in x[0]]
-      # print(state_desc[0], asset_balance, self.budget),
-      # print('online portfolio', self.online_portfolio)
       if asset_balance:
         sh_name = asset_balance[0][0]
         if len(asset_balance) > 1:
           sh_volume = sum([x[1] for x in asset_balance])
-          # print(sh_volume)
         else:
           sh_volume = asset_balance[0][1]
-        # print(sh_volume)
         sell_volume = round(sh_volume*self.bought_pred.flatten()[0])
         self.online_portfolio = [x for x in self.online_portfolio if x not in asset_balance]
         future_rew_list = ut.extract(self.st.data.df, idx, sell_volume, self.budget)
@@ -197,13 +191,10 @@ class Reinforce:
 
       else:
         future_rew_list = pd.DataFrame({'deltatime': []})
-      # print(future_rew_list)
       return future_rew_list
 
     def check(self, date_):
       return ut.check_portfolio(self.st.data.df, date_, self.online_portfolio, self.budget)
-
-
 
 
     def env_reaction(self, action, idx):
@@ -306,30 +297,28 @@ class Reinforce:
             episode_reward = 0  # record episode reward
             while not done:
                 state, state_des, idx = next(self.st)  # itrator
+                print(state_des)
                 if self.condition(state_des):
                     action, prob = self.get_action(state)
-                    rew = self.env_reaction(action, idx)
+                    print(action)
+                    reward = self.env_reaction(action, idx)
+                    print(reward)
                     done = self.check(state_des[2])
+                    print(self.online_portfolio)
+                    self.remember(state, action, prob, reward)
 
-                done = True
+                episode_reward += reward
+                if done:
+                    # update policy
+                    if episode % rollout_n == 0:
+                        history = self.update_policy()
 
-                # print(action, prob)
-        #         next_state, reward, done, _ = env.step(action)
-        #         self.remember(state, action, prob, reward)
-        #         state = next_state
-        #         episode_reward += reward
-        #
-        #         # if episode%render_n==0: ## render env to visualize.
-        #         # env.render()
-        #         if done:
-        #             # update policy
-        #             if episode % rollout_n == 0:
-        #                 history = self.update_policy()
-        #
-        #     total_rewards[episode] = episode_reward
-        #
-        # self.total_rewards = total_rewards
+            total_rewards[episode] = episode_reward
+
+        self.total_rewards = total_rewards
+        print(total_rewards)
+
 
 
 result = Reinforce(budget=20000000)
-result.train(15)
+result.train(1)
