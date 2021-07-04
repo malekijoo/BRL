@@ -1,2 +1,2 @@
 # BRL
-This is the project i am working on. A DRL on Stock Market Data
+A Deep RL on Real Stock Market Data (ongoing)
